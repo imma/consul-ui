@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+function _consul_ui_profile {
+  local shome="${_consul_ui_home:-"$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"}"
+  PATH="$shome/bin:$PATH"
+}
+
+_consul_ui_profile

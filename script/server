@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+function consul_server {
+  local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
+  source "$shome/script/profile"
+
+  if [[ "$#" == 0 ]]; then
+    set -- default
+  fi
+
+  case "${1:-}" in
+    default)
+      while ! ping -c 1 -t 1 consul; do
+        sleep 1
+      done
+      local ip_client="$(ifconfig eth0 | grep 'inet addr' | awk '{print $2}' | cut -d: -f2)"
+      exec consul agent -config-dir="$shome/etc" -join consul -advertise "$ip_client" -ui
+      ;;
+    *)
+      echo "ERROR: unknown server command: ${1:-/not-supplied/}" 1>&2
+      return 1
+      ;;
+  esac
+}
+
+consul_server "$@"
