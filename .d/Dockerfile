@@ -4,7 +4,7 @@
 # | (_| | (_) | (__|   <  __/ |   
 #  \__,_|\___/ \___|_|\_\___|_|   
                                 
-FROM docker.nih/block:consul
+FROM docker.nih/block:consul-ui
 
 ARG SERIAL
 ARG CACHE
