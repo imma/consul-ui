@@ -6,7 +6,6 @@
                                 
 FROM docker.nih/block:consul-ui
 
-ARG SERIAL
 ARG CACHE
 
 RUN rm -f service/consul-agent
