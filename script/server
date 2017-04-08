@@ -10,11 +10,49 @@ function consul_server {
 
   case "${1:-}" in
     default)
-      while ! ping -c 1 -t 1 consul; do
+      exec 2>&1
+      set -x
+
+      local hst_consul=
+      while true; do
+        if ping -c 1 -t 3 -W 3 consul.service.consul; then
+          hst_consul='consul.service.consul'
+          break
+        fi
+        if ping -c 1 -t 3 -W 3 consul; then
+          hst_consul='consul'
+          break
+        fi
         sleep 1
       done
-      local ip_client="$(ifconfig eth0 | grep 'inet addr' | awk '{print $2}' | cut -d: -f2)"
-      exec consul agent -config-dir="$shome/etc" -join consul -advertise "$ip_client" -ui
+      
+      local pth_config=
+      while true; do
+        if [[ -f "$shome/etc/consul.json" ]]; then
+          pth_config="$shome/etc"
+          break
+        fi 
+
+        if [[ -f "/config/consul/etc/consul.json" ]]; then
+          pth_config="/config/consul/etc"
+          break
+        fi 
+        sleep 1
+      done
+
+      local ip_client="$(runmany 'ifconfig $1 2>/dev/null || true' eth0 enp0s8 vboxnet0 | grep 'inet ' | awk '{print $2}' | cut -d: -f2)"
+
+      local nm_node=
+      if [[ "$ip_client" == "172.28.128.1" ]]; then
+        nm_node=nih
+      fi
+
+      if [[ "$(cat /proc/sys/kernel/random/boot_id 2>/dev/null)" == "$(cat "$BLOCK_PATH/consul/data/node-id" 2>/dev/null)" ]]; then
+        cat /proc/sys/kernel/random/uuid > "$BLOCK_PATH/consul/data/node-id.1"
+        mv -f "$BLOCK_PATH/consul/data/node-id.1" "$BLOCK_PATH/consul/data/node-id"
+      fi
+
+      exec consul agent -config-dir="$pth_config" -join "$hst_consul" -advertise "$ip_client"${nm_node:+ -node="${nm_node}"} -ui
       ;;
     *)
       echo "ERROR: unknown server command: ${1:-/not-supplied/}" 1>&2
