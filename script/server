@@ -53,7 +53,7 @@ function consul_server {
         mv -f "$BLOCK_PATH/consul/data/node-id.1" "$BLOCK_PATH/consul/data/node-id"
       fi
 
-      exec consul agent -config-dir="$pth_config" -join "$hst_consul" -advertise "$ip_client"${nm_node:+ -node="${nm_node}"} -ui -node "${SERVICE:+${SERVICE}-}$(uname-n)"
+      exec consul agent -config-dir="$pth_config" -join "$hst_consul" -advertise "$ip_client"${nm_node:+ -node="${nm_node}"} -ui -node-id "$(cat $BLOCK_PATH/consul/data/node-id)" -node "${SERVICE:+${SERVICE}-}$(uname-n)"
       ;;
     *)
       echo "ERROR: unknown server command: ${1:-/not-supplied/}" 1>&2
