@@ -43,17 +43,7 @@ function consul_server {
       local ip_client="$(runmany 'ifconfig $1 2>/dev/null || true' eth0 enp0s8 vboxnet0 | grep 'inet ' | awk '{print $2}' | cut -d: -f2)"
 
       local nm_node=
-      if [[ "$ip_client" == "172.28.128.1" ]]; then
-        nm_node=nih
-      fi
-
-      if [[ ! -f "$BLOCK_PATH/consul/data/node-id" || "$(cat /proc/sys/kernel/random/boot_id 2>/dev/null)" == "$(cat "$BLOCK_PATH/consul/data/node-id" 2>/dev/null)" ]]; then
-        mkdir -p "$BLOCK_PATH/consul/data"
-        cat /proc/sys/kernel/random/uuid > "$BLOCK_PATH/consul/data/node-id.1"
-        mv -f "$BLOCK_PATH/consul/data/node-id.1" "$BLOCK_PATH/consul/data/node-id"
-      fi
-
-      exec consul agent -config-dir="$pth_config" -join "$hst_consul" -advertise "$ip_client"${nm_node:+ -node="${nm_node}"} -ui -node-id "$(cat $BLOCK_PATH/consul/data/node-id)" -node "${SERVICE:+${SERVICE}-}$(uname -n)"
+      exec consul agent -disable-host-node-id -config-dir="$pth_config" -join "$hst_consul" -advertise "$ip_client"${nm_node:+ -node="${nm_node}"} -ui -node "${SERVICE:+${SERVICE}-}$(uname -n)"
       ;;
     *)
       echo "ERROR: unknown server command: ${1:-/not-supplied/}" 1>&2
