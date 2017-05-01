@@ -15,12 +15,12 @@ function consul_server {
 
       local hst_consul=
       while true; do
-        if ping -c 1 -t 3 -W 3 consul.service.consul; then
-          hst_consul='consul.service.consul'
-          break
-        fi
         if ping -c 1 -t 3 -W 3 consul; then
           hst_consul='consul'
+          break
+        fi
+        if ping -c 1 -t 3 -W 3 consul.service.consul; then
+          hst_consul='consul.service.consul'
           break
         fi
         sleep 1
@@ -42,8 +42,7 @@ function consul_server {
 
       local ip_client="$(runmany 'ifconfig $1 2>/dev/null || true' eth0 enp0s8 vboxnet0 | grep 'inet ' | awk '{print $2}' | cut -d: -f2)"
 
-      local nm_node=
-      exec consul agent -disable-host-node-id -config-dir="$pth_config" -join "$hst_consul" -advertise "$ip_client"${nm_node:+ -node="${nm_node}"} -ui -node "${SERVICE:+${SERVICE}-}$(uname -n)"
+      exec consul agent -disable-host-node-id -config-dir="$pth_config" -join "$hst_consul" -advertise "$ip_client" -ui -node "$(uname -n)"
       ;;
     *)
       echo "ERROR: unknown server command: ${1:-/not-supplied/}" 1>&2
